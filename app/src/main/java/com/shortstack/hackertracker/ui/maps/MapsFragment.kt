@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.crashlytics.android.answers.CustomEvent
 import com.shortstack.hackertracker.R
+import com.shortstack.hackertracker.Resource
 import com.shortstack.hackertracker.models.firebase.FirebaseConferenceMap
 import com.shortstack.hackertracker.models.local.Location
 import com.shortstack.hackertracker.ui.HackerTrackerViewModel
@@ -60,8 +61,8 @@ class MapsFragment : Fragment() {
 
 
         val mapsViewModel = ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
-        mapsViewModel.maps.observe(this, Observer {
-            val maps = it.data ?: emptyList()
+        mapsViewModel.maps.observe(viewLifecycleOwner, Observer {
+            val maps = (it as? Resource.Success)?.data ?: emptyList()
 
             when (maps.size) {
                 0 -> {
@@ -78,7 +79,7 @@ class MapsFragment : Fragment() {
                 }
             }
 
-            val adapter = PagerAdapter(activity!!.supportFragmentManager, maps)
+            val adapter = PagerAdapter(requireActivity().supportFragmentManager, maps)
             pager.adapter = adapter
 
             if (isFirstLoad) {

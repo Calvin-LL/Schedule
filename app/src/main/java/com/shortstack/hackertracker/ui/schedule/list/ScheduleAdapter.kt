@@ -3,7 +3,6 @@ package com.shortstack.hackertracker.ui.schedule.list
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.shortstack.hackertracker.Status
 import com.shortstack.hackertracker.models.Day
 import com.shortstack.hackertracker.models.Time
 import com.shortstack.hackertracker.models.local.Event
@@ -23,8 +22,6 @@ class ScheduleAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), StickyR
     }
 
     private val collection = ArrayList<Any>()
-
-    var state: Status = Status.NOT_INITIALIZED
 
     override fun getHeaderId(position: Int): Long {
         return when (val obj = collection[position]) {
@@ -153,8 +150,6 @@ class ScheduleAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), StickyR
 
         return collection
     }
-
-    fun isEmpty() = state == Status.SUCCESS && collection.isEmpty()
 
     fun clearAndNotify() {
         collection.clear()

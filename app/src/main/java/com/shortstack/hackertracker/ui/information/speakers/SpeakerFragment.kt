@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.shortstack.hackertracker.R
+import com.shortstack.hackertracker.Resource
 import com.shortstack.hackertracker.utilities.Analytics
 import com.shortstack.hackertracker.database.DatabaseManager
 import com.shortstack.hackertracker.models.local.Speaker
@@ -70,8 +71,8 @@ class SpeakerFragment : Fragment() {
 
         val speaker = arguments?.getParcelable(EXTRA_SPEAKER) as? Speaker
 
-        viewModel.speakers.observe(this, Observer {
-            val target = it.data?.find { it.id == speaker?.id }
+        viewModel.speakers.observe(viewLifecycleOwner, Observer {
+            val target = (it as? Resource.Success)?.data?.find { it.id == speaker?.id }
             if(target != null) {
                 showSpeaker(target)
             }

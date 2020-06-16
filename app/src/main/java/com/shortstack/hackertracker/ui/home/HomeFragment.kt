@@ -9,6 +9,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.shortstack.hackertracker.R
+import com.shortstack.hackertracker.Resource
 import com.shortstack.hackertracker.ui.HackerTrackerViewModel
 import com.shortstack.hackertracker.ui.activities.MainActivity
 import kotlinx.android.synthetic.main.fragment_home.*
@@ -37,8 +38,8 @@ class HomeFragment : Fragment() {
 
 
         val viewModel = ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
-        viewModel.home.observe(this, Observer {
-            if (it.data != null)
+        viewModel.home.observe(viewLifecycleOwner, Observer {
+            if ((it as? Resource.Success)?.data != null)
                 adapter.setElements(it.data)
         })
 

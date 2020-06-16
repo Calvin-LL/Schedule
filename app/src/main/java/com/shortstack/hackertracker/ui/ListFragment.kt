@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
 import com.shortstack.hackertracker.R
 import com.shortstack.hackertracker.Resource
-import com.shortstack.hackertracker.Status
 import kotlinx.android.synthetic.main.fragment_recyclerview.*
 
 abstract class ListFragment<T> : Fragment() {
@@ -28,28 +27,28 @@ abstract class ListFragment<T> : Fragment() {
     inline fun <reified J : ViewModel> getViewModel(): J = ViewModelProviders.of(this).get(J::class.java)
 
     fun onResource(resource: Resource<List<Any>>?) {
-        when (resource?.status) {
-            Status.SUCCESS -> {
+        when (resource) {
+            is Resource.Success -> {
                 setProgressIndicator(active = false)
                 adapter.clearAndNotify()
 
-                if (resource.data?.isNotEmpty() == true) {
+                if (resource.data.isNotEmpty()) {
                     adapter.addAllAndNotify(resource.data)
                     hideViews()
                 } else {
                     showEmptyView()
                 }
             }
-            Status.ERROR -> {
+            is Resource.Failure -> {
                 setProgressIndicator(active = false)
-                showErrorView(resource.message)
+                showErrorView(resource.exception.message)
             }
-            Status.LOADING -> {
+            is Resource.Loading -> {
                 setProgressIndicator(active = true)
                 adapter.clearAndNotify()
                 hideViews()
             }
-            Status.NOT_INITIALIZED -> {
+            is Resource.Init -> {
                 setProgressIndicator(active = false)
                 showInitView()
             }

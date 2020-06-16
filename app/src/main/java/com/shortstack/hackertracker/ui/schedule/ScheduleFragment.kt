@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.shortstack.hackertracker.R
-import com.shortstack.hackertracker.Status
+import com.shortstack.hackertracker.Resource
 import com.shortstack.hackertracker.models.Day
 import com.shortstack.hackertracker.models.local.Event
 import com.shortstack.hackertracker.models.local.Type
@@ -55,7 +55,11 @@ class ScheduleFragment : Fragment() {
     private lateinit var bottomSheet: BottomSheetBehavior<View>
 
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_schedule, container, false) as ViewGroup
     }
 
@@ -99,7 +103,10 @@ class ScheduleFragment : Fragment() {
                     if (first == -1 || last == -1)
                         return
 
-                    day_selector.onScroll(adapter.getDateOfPosition(first), adapter.getDateOfPosition(last))
+                    day_selector.onScroll(
+                        adapter.getDateOfPosition(first),
+                        adapter.getDateOfPosition(last)
+                    )
                 }
             }
         })
@@ -111,41 +118,37 @@ class ScheduleFragment : Fragment() {
         })
 
 
-        val scheduleViewModel = ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
-        scheduleViewModel.schedule.observe(this, Observer {
+        val scheduleViewModel =
+            ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
+        scheduleViewModel.schedule.observe(viewLifecycleOwner, Observer {
             hideViews()
+            when (it) {
+                is Resource.Success -> {
+                    val list = adapter.setSchedule(it.data)
+                    val days = list.filterIsInstance<Day>()
+                    day_selector.setDays(days)
 
-            if (it != null) {
-                adapter.state = it.status
-
-                when (it.status) {
-                    Status.SUCCESS -> {
-                        val list = adapter.setSchedule(it.data)
-                        val days = list.filterIsInstance<Day>()
-                        day_selector.setDays(days)
-
-                        if (adapter.isEmpty()) {
-                            showEmptyView()
-                        }
-
-                        scrollToCurrentPosition(list)
-                    }
-                    Status.ERROR -> {
-                        showErrorView(it.message)
-                    }
-                    Status.LOADING -> {
-                        adapter.clearAndNotify()
-                        showProgress()
-                    }
-                    Status.NOT_INITIALIZED -> {
+                    if (list.isEmpty()) {
                         showEmptyView()
                     }
+
+                    scrollToCurrentPosition(list)
+                }
+                is Resource.Failure -> {
+                    showErrorView(it.exception.message)
+                }
+                is Resource.Loading -> {
+                    adapter.clearAndNotify()
+                    showProgress()
+                }
+                is Resource.Init -> {
+                    showEmptyView()
                 }
             }
         })
 
-        scheduleViewModel.types.observe(this, Observer {
-            filters.setTypes(it.data)
+        scheduleViewModel.types.observe(viewLifecycleOwner, Observer {
+            filters.setTypes((it as? Resource.Success)?.data)
         })
 
 
@@ -182,7 +185,8 @@ class ScheduleFragment : Fragment() {
         val element = data.subList(0, event).filterIsInstance<Day>().last()
         val index = data.indexOf(element)
 
-        val x = data.subList(index, event).filterIsInstance<Event>().firstOrNull { it.start.time != first.start.time } == null
+        val x = data.subList(index, event).filterIsInstance<Event>()
+            .firstOrNull { it.start.time != first.start.time } == null
         if (!x) {
             return event
         }

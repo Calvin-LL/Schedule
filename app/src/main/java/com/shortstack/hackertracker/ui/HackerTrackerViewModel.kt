@@ -50,9 +50,9 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<Conference>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
-                result.value = Resource.success(it)
+                result.value = Resource.Success(it)
             }
 
 
@@ -63,10 +63,10 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Type>>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
                 result.addSource(database.getTypes(it)) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
             return@switchMap result
@@ -76,10 +76,10 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Location>>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
                 result.addSource(database.getLocations(it)) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
             return@switchMap result
@@ -89,10 +89,10 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Event>>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
                 result.addSource(database.getSchedule(it)) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
 
@@ -104,20 +104,20 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Event>>>()
 
             if (id == null) {
-                result.value = Resource.init(null)
+                result.value = Resource.Init
                 return@switchMap result
             }
 
-            result.value = Resource.loading(null)
+            result.value = Resource.Loading
 
             result.addSource(events) {
-                val types = types.value?.data ?: emptyList()
-                result.value = Resource.success(getSchedule(it?.data ?: emptyList(), types))
+                val types = (types.value as? Resource.Success)?.data ?: emptyList()
+                result.value = Resource.Success(getSchedule((it as? Resource.Success)?.data?: emptyList(), types))
             }
 
             result.addSource(types) { types ->
-                val events = events.value?.data ?: return@addSource
-                result.value = Resource.success(getSchedule(events, types?.data ?: emptyList()))
+                val events = (events.value as? Resource.Success)?.data ?: return@addSource
+                result.value = Resource.Success(getSchedule(events, (types as? Resource.Success)?.data?: emptyList()))
             }
 
             return@switchMap result
@@ -127,11 +127,11 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Bookmark>>>()
 
             if (it == null) {
-                result.value = Resource.init(null)
+                result.value = Resource.Init
                 return@switchMap result
             } else {
                 result.addSource(database.getBookmarks(it, "user-01")) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
 
@@ -145,10 +145,10 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Speaker>>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
                 result.addSource(database.getSpeakers(it)) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
 
@@ -160,10 +160,10 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Article>>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
                 result.addSource(database.getArticles(it)) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
 
@@ -175,10 +175,10 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<FAQ>>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
                 result.addSource(database.getFAQ(it)) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
 
@@ -189,10 +189,10 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Vendor>>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
                 result.addSource(database.getVendors(it)) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
 
@@ -203,10 +203,10 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<FirebaseConferenceMap>>>()
 
             if (it == null) {
-                result.value = Resource.init()
+                result.value = Resource.Init
             } else {
                 result.addSource(database.getMaps(it)) {
-                    result.value = Resource.success(it)
+                    result.value = Resource.Success(it)
                 }
             }
 
@@ -217,21 +217,21 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val results = MediatorLiveData<List<Any>>()
 
             results.addSource(events) {
-                val locations = locations.value?.data ?: emptyList()
-                val speakers = speakers.value?.data ?: emptyList()
-                setValue(results, text, it?.data ?: emptyList(), locations, speakers)
+                val locations = (locations.value as? Resource.Success)?.data?: emptyList()
+                val speakers = (speakers.value as? Resource.Success)?.data?: emptyList()
+                setValue(results, text, (it as? Resource.Success)?.data?: emptyList(), locations, speakers)
             }
 
             results.addSource(locations) {
-                val events = events.value?.data ?: emptyList()
-                val speakers = speakers.value?.data ?: emptyList()
-                setValue(results, text, events, it?.data ?: emptyList(), speakers)
+                val events = (events.value as? Resource.Success)?.data?: emptyList()
+                val speakers = (speakers.value as? Resource.Success)?.data?: emptyList()
+                setValue(results, text, events, (it as? Resource.Success)?.data?: emptyList(), speakers)
             }
 
             results.addSource(speakers) {
-                val events = events.value?.data ?: emptyList()
-                val locations = locations.value?.data ?: emptyList()
-                setValue(results, text, events, locations, it?.data ?: emptyList())
+                val events = (events.value as? Resource.Success)?.data?: emptyList()
+                val locations = (locations.value as? Resource.Success)?.data?: emptyList()
+                setValue(results, text, events, locations, (it as? Resource.Success)?.data?: emptyList())
             }
 
             return@switchMap results
@@ -241,20 +241,20 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             val result = MediatorLiveData<Resource<List<Any>>>()
 
             if (id == null) {
-                result.value = Resource.init(null)
+                result.value = Resource.Init
                 return@switchMap result
             }
 
-            result.value = Resource.loading(null)
+            result.value = Resource.Loading
 
             result.addSource(bookmarks) {
-                val articles = articles.value?.data?.take(4) ?: emptyList()
-                result.value = Resource.success(articles + (it.data?.take(3) ?: emptyList()))
+                val articles = (articles.value as? Resource.Success)?.data?.take(4) ?: emptyList()
+                result.value = Resource.Success(articles + ((it as? Resource.Success)?.data?.take(3) ?: emptyList()))
             }
 
             result.addSource(articles) {
-                val bookmarks = bookmarks.value?.data?.take(3) ?: emptyList()
-                result.value = Resource.success((it.data?.take(4) ?: emptyList()) + bookmarks)
+                val bookmarks = (bookmarks.value as? Resource.Success)?.data?.take(3) ?: emptyList()
+                result.value = Resource.Success(((it as? Resource.Success)?.data?.take(4) ?: emptyList()) + bookmarks)
             }
 
             return@switchMap result

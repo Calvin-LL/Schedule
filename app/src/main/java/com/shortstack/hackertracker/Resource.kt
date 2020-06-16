@@ -1,21 +1,14 @@
 package com.shortstack.hackertracker
 
-data class Resource<out T>(val status: Status, val data: T?, val message: String?) {
+sealed class Resource<out T> {
 
-    companion object {
-        fun <T> success(data: T?) = Resource(Status.SUCCESS, data, null)
+    // todo: possibly remove this state
+    object Init : Resource<Nothing>()
 
-        fun <T> error(msg: String, data: T?) = Resource(Status.ERROR, data, msg)
+    object Loading : Resource<Nothing>()
 
-        fun <T> loading(data: T?) = Resource(Status.LOADING, data, null)
+    class Success<out T>(val data: T) : Resource<T>()
 
-        fun <T> init(data: T? = null) = Resource(Status.NOT_INITIALIZED, data, null)
-    }
-}
+    class Failure(val exception: Exception) : Resource<Nothing>()
 
-enum class Status {
-    SUCCESS,
-    ERROR,
-    LOADING,
-    NOT_INITIALIZED
 }

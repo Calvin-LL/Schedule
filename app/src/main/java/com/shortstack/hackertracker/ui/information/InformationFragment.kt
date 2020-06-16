@@ -11,7 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayout
 import com.shortstack.hackertracker.R
-import com.shortstack.hackertracker.Status
+import com.shortstack.hackertracker.Resource
 import com.shortstack.hackertracker.ui.HackerTrackerViewModel
 import com.shortstack.hackertracker.ui.activities.MainActivity
 import com.shortstack.hackertracker.ui.information.faq.FAQFragment
@@ -63,10 +63,10 @@ class InformationFragment : Fragment() {
         })
 
         val viewModel = ViewModelProvider(this)[HackerTrackerViewModel::class.java]
-        viewModel.conference.observe(this, Observer {
+        viewModel.conference.observe(viewLifecycleOwner, Observer {
             val fm = activity?.supportFragmentManager ?: return@Observer
-            if (it.status == Status.SUCCESS) {
-                val adapter = PagerAdapter(fm, it.data!!.code)
+            if (it is Resource.Success) {
+                val adapter = PagerAdapter(fm, it.data.code)
                 pager.adapter = adapter
             }
         })

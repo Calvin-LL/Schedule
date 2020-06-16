@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.shortstack.hackertracker.R
+import com.shortstack.hackertracker.Resource
 import com.shortstack.hackertracker.database.DatabaseManager
 import com.shortstack.hackertracker.database.ReminderManager
 import com.shortstack.hackertracker.models.local.Event
@@ -65,8 +66,8 @@ class EventFragment : Fragment() {
 
         val id = arguments?.getInt(EXTRA_EVENT)
 
-        viewModel.events.observe(this, Observer {
-            val target = it.data?.find { it.id == id }
+        viewModel.events.observe(viewLifecycleOwner, Observer {
+            val target = (it as? Resource.Success)?.data?.find { it.id == id }
             if (target != null) {
                 showEvent(target)
             }

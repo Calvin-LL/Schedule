@@ -24,6 +24,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.orhanobut.logger.Logger
 import com.shortstack.hackertracker.BuildConfig
 import com.shortstack.hackertracker.R
+import com.shortstack.hackertracker.Resource
 import com.shortstack.hackertracker.models.local.Event
 import com.shortstack.hackertracker.models.local.Location
 import com.shortstack.hackertracker.models.local.Speaker
@@ -68,7 +69,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener, Frag
         viewModel = ViewModelProvider(this)[HackerTrackerViewModel::class.java]
         viewModel.conference.observe(this, Observer {
             if (it != null) {
-                nav_view.getHeaderView(0).nav_title.text = it.data?.name
+                nav_view.getHeaderView(0).nav_title.text = (it as? Resource.Success)?.data?.name
             }
         })
 
