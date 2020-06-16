@@ -22,7 +22,7 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
 
     val conference: LiveData<Resource<Conference>>
     val events: LiveData<Resource<List<Event>>>
-    val bookmarks: LiveData<Resource<List<Event>>>
+    val bookmarks: LiveData<Resource<List<Bookmark>>>
     val types: LiveData<Resource<List<Type>>>
     val locations: LiveData<Resource<List<Location>>>
     val speakers: LiveData<Resource<List<Speaker>>>
@@ -91,7 +91,7 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             if (it == null) {
                 result.value = Resource.init()
             } else {
-                result.addSource(database.getSchedule()) {
+                result.addSource(database.getSchedule(it)) {
                     result.value = Resource.success(it)
                 }
             }
@@ -124,13 +124,13 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
         }
 
         bookmarks = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<Event>>>()
+            val result = MediatorLiveData<Resource<List<Bookmark>>>()
 
             if (it == null) {
                 result.value = Resource.init(null)
                 return@switchMap result
             } else {
-                result.addSource(database.getBookmarks(it)) {
+                result.addSource(database.getBookmarks(it, "user-01")) {
                     result.value = Resource.success(it)
                 }
             }

@@ -92,19 +92,6 @@ fun FirebaseConference.toConference() = Conference(
         timezone
 )
 
-fun FirebaseType.toType() = Type(
-        id,
-        name,
-        conference,
-        color
-)
-
-fun FirebaseLocation.toLocation() = Location(
-        name,
-        hotel,
-        conference
-)
-
 fun FirebaseEvent.toEvent() = Event(
         id,
         conference,
@@ -114,36 +101,7 @@ fun FirebaseEvent.toEvent() = Event(
         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(end),
         link,
         updated,
-        speakers.map { it.toSpeaker() },
-        type.toType(),
-        location.toLocation()
-)
-
-fun FirebaseSpeaker.toSpeaker() = Speaker(
-        id,
-        name,
-        description,
-        link,
-        twitter,
-        title
-)
-
-fun FirebaseVendor.toVendor() = Vendor(
-        id,
-        name,
-        description,
-        link,
-        partner
-)
-
-fun FirebaseArticle.toArticle() = Article(
-        id,
-        name,
-        text
-)
-
-fun FirebaseFAQ.toFAQ() = FAQ(
-        id,
-        question,
-        answer
+        speakers.map { it.toLocal() },
+        type.toLocal(),
+        location.toLocal()
 )

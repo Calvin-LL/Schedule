@@ -12,7 +12,7 @@ class VendorTest {
     fun toVendorTitleDescription() {
         val firebase = FirebaseVendor(name = "Vendor", description = "Description")
 
-        val vendor = firebase.toVendor()
+        val vendor = firebase.toLocal()
 
         assertEquals("Vendor", vendor.name)
         assertEquals("Description", vendor.summary)
@@ -24,7 +24,7 @@ class VendorTest {
     fun toVendorNullDescription() {
         val firebase = FirebaseVendor(name = "Vendor")
 
-        val vendor = firebase.toVendor()
+        val vendor = firebase.toLocal()
 
         assertEquals("Vendor", vendor.name)
         assertEquals("Nothing to say.", vendor.summary)
@@ -34,7 +34,7 @@ class VendorTest {
     fun toVendorPartner() {
         val firebase = FirebaseVendor(name = "Vendor", partner = true)
 
-        val vendor = firebase.toVendor()
+        val vendor = firebase.toLocal()
 
         assertEquals("Vendor", vendor.name)
         assertEquals(true, vendor.partner)
@@ -45,7 +45,7 @@ class VendorTest {
     fun toVendorLink() {
         val firebase = FirebaseVendor(name = "Vendor", link = "google.ca")
 
-        val vendor = firebase.toVendor()
+        val vendor = firebase.toLocal()
 
         assertEquals("Vendor", vendor.name)
         assertEquals("google.ca", vendor.link)
