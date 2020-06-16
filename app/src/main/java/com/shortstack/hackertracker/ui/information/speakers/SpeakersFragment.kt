@@ -19,9 +19,9 @@ class SpeakersFragment : ListFragment<FirebaseSpeaker>() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        val viewModel = ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
+        val viewModel = ViewModelProvider(requireActivity())[HackerTrackerViewModel::class.java]
 
-        viewModel.speakers.observe(context as MainActivity, Observer {
+        viewModel.speakers.observe(viewLifecycleOwner, Observer {
             onResource(it)
         })
     }

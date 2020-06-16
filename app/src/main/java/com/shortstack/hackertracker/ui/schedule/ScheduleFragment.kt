@@ -119,36 +119,27 @@ class ScheduleFragment : Fragment() {
 
 
         val scheduleViewModel =
-            ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
+            ViewModelProvider(requireActivity())[HackerTrackerViewModel::class.java]
         scheduleViewModel.schedule.observe(viewLifecycleOwner, Observer {
             hideViews()
-            when (it) {
-                is Resource.Success -> {
-                    val list = adapter.setSchedule(it.data)
-                    val days = list.filterIsInstance<Day>()
-                    day_selector.setDays(days)
+            if(it == null) {
+                adapter.clearAndNotify()
+                showProgress()
+            } else {
+                val list = adapter.setSchedule(it)
+                val days = list.filterIsInstance<Day>()
+                day_selector.setDays(days)
 
-                    if (list.isEmpty()) {
-                        showEmptyView()
-                    }
-
-                    scrollToCurrentPosition(list)
-                }
-                is Resource.Failure -> {
-                    showErrorView(it.exception.message)
-                }
-                is Resource.Loading -> {
-                    adapter.clearAndNotify()
-                    showProgress()
-                }
-                is Resource.Init -> {
+                if (list.isEmpty()) {
                     showEmptyView()
                 }
+
+                scrollToCurrentPosition(list)
             }
         })
 
         scheduleViewModel.types.observe(viewLifecycleOwner, Observer {
-            filters.setTypes((it as? Resource.Success)?.data)
+            filters.setTypes(it)
         })
 
 

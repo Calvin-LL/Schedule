@@ -63,13 +63,15 @@ class InformationFragment : Fragment() {
         })
 
         val viewModel = ViewModelProvider(this)[HackerTrackerViewModel::class.java]
-        viewModel.conference.observe(viewLifecycleOwner, Observer {
-            val fm = activity?.supportFragmentManager ?: return@Observer
-            if (it is Resource.Success) {
-                val adapter = PagerAdapter(fm, it.data.code)
-                pager.adapter = adapter
-            }
-        })
+
+        // todo:
+//        viewModel.conference.observe(viewLifecycleOwner, Observer {
+//            val fm = activity?.supportFragmentManager ?: return@Observer
+//            if (it is Resource.Success) {
+//                val adapter = PagerAdapter(fm, it.data.code)
+//                pager.adapter = adapter
+//            }
+//        })
     }
 
     class PagerAdapter(fm: FragmentManager, private val conference: String) : FragmentStatePagerAdapter(fm) {

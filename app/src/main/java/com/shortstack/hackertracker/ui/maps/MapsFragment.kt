@@ -60,9 +60,9 @@ class MapsFragment : Fragment() {
         }
 
 
-        val mapsViewModel = ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
+        val mapsViewModel = ViewModelProvider(requireActivity())[HackerTrackerViewModel::class.java]
         mapsViewModel.maps.observe(viewLifecycleOwner, Observer {
-            val maps = (it as? Resource.Success)?.data ?: emptyList()
+            val maps = it ?: emptyList()
 
             when (maps.size) {
                 0 -> {

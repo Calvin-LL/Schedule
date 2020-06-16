@@ -19,7 +19,7 @@ class FAQFragment : ListFragment<FirebaseFAQ>() {
         super.onViewCreated(view, savedInstanceState)
 
         val viewModel = ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
-        viewModel.faq.observe(this, Observer {
+        viewModel.faq.observe(viewLifecycleOwner, Observer {
             onResource(it)
         })
     }

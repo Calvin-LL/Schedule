@@ -2,10 +2,9 @@ package com.shortstack.hackertracker.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.shortstack.hackertracker.Resource
 import com.shortstack.hackertracker.database.DatabaseManager
+import com.shortstack.hackertracker.models.firebase.FirebaseConference
 import com.shortstack.hackertracker.models.firebase.FirebaseConferenceMap
 import com.shortstack.hackertracker.models.local.*
 import com.shortstack.hackertracker.ui.themes.ThemesManager
@@ -20,246 +19,173 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
     private val themes: ThemesManager by inject()
 
 
-    val conference: LiveData<Resource<Conference>>
-    val events: LiveData<Resource<List<Event>>>
-    val bookmarks: LiveData<Resource<List<Bookmark>>>
-    val types: LiveData<Resource<List<Type>>>
-    val locations: LiveData<Resource<List<Location>>>
-    val speakers: LiveData<Resource<List<Speaker>>>
+    // todo: pass in the right conference
+    val conference: Conference = FirebaseConference(code = "DEFCON27").toLocal()
 
-    val articles: LiveData<Resource<List<Article>>>
-    val faq: LiveData<Resource<List<FAQ>>>
-    val vendors: LiveData<Resource<List<Vendor>>>
 
-    val maps: LiveData<Resource<List<FirebaseConferenceMap>>>
+    val events: LiveData<List<Event>>
+        get() = _events
+
+    private val _events = MediatorLiveData<List<Event>>()
+
+    val bookmarks: LiveData<List<Bookmark>>
+        get() = _bookmarks
+
+    private val _bookmarks = MediatorLiveData<List<Bookmark>>()
+
+
+    val types: LiveData<List<Type>>
+        get() = _types
+
+    private val _types = MediatorLiveData<List<Type>>()
+
+    val locations: LiveData<List<Location>>
+        get() = _locations
+
+    private val _locations = MediatorLiveData<List<Location>>()
+
+    val speakers: LiveData<List<Speaker>>
+        get() = _speakers
+
+    private val _speakers = MediatorLiveData<List<Speaker>>()
+
+    val articles: LiveData<List<Article>>
+        get() = _articles
+
+    private val _articles = MediatorLiveData<List<Article>>()
+
+    val faq: LiveData<List<FAQ>>
+        get() = _faq
+
+    private val _faq = MediatorLiveData<List<FAQ>>()
+
+
+    val vendors: LiveData<List<Vendor>>
+        get() = _vendors
+
+    private val _vendors = MediatorLiveData<List<Vendor>>()
+
+    val maps: LiveData<List<FirebaseConferenceMap>>
+        get() = _maps
+
+    private val _maps = MediatorLiveData<List<FirebaseConferenceMap>>()
 
     // Home
-    val home: LiveData<Resource<List<Any>>>
+    val home: LiveData<List<Any>>
+        get() = _home
+
+    private val _home = MediatorLiveData<List<Any>>()
 
     // Schedule
-    val schedule: LiveData<Resource<List<Event>>>
+    val schedule: LiveData<List<Event>>
+        get() = _schedule
+
+    private val _schedule = MediatorLiveData<List<Event>>()
 
 
     // Search
     private val query = MediatorLiveData<String>()
     val search: LiveData<List<Any>>
+        get() = _search
+
+    private val _search = MediatorLiveData<List<Any>>()
 
 
     init {
-        conference = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<Conference>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.value = Resource.Success(it)
-            }
-
-
-            return@switchMap result
+        _types.addSource(database.getTypes(conference)) {
+            _types.value = it
         }
 
-        types = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<Type>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.addSource(database.getTypes(it)) {
-                    result.value = Resource.Success(it)
-                }
-            }
-            return@switchMap result
+        _locations.addSource(database.getLocations(conference)) {
+            _locations.value = it
         }
 
-        locations = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<Location>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.addSource(database.getLocations(it)) {
-                    result.value = Resource.Success(it)
-                }
-            }
-            return@switchMap result
+        _events.addSource(database.getSchedule(conference)) {
+            _events.value = it
         }
 
-        events = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<Event>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.addSource(database.getSchedule(it)) {
-                    result.value = Resource.Success(it)
-                }
-            }
-
-
-            return@switchMap result
+        _schedule.addSource(events) {
+            val types = _types.value ?: emptyList()
+            _schedule.value = getSchedule(it, types)
         }
 
-        schedule = Transformations.switchMap(database.conference) { id ->
-            val result = MediatorLiveData<Resource<List<Event>>>()
-
-            if (id == null) {
-                result.value = Resource.Init
-                return@switchMap result
-            }
-
-            result.value = Resource.Loading
-
-            result.addSource(events) {
-                val types = (types.value as? Resource.Success)?.data ?: emptyList()
-                result.value = Resource.Success(getSchedule((it as? Resource.Success)?.data?: emptyList(), types))
-            }
-
-            result.addSource(types) { types ->
-                val events = (events.value as? Resource.Success)?.data ?: return@addSource
-                result.value = Resource.Success(getSchedule(events, (types as? Resource.Success)?.data?: emptyList()))
-            }
-
-            return@switchMap result
+        _schedule.addSource(types) {
+            val events = _events.value ?: return@addSource
+            _schedule.value = getSchedule(events, it)
         }
 
-        bookmarks = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<Bookmark>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-                return@switchMap result
-            } else {
-                result.addSource(database.getBookmarks(it, "user-01")) {
-                    result.value = Resource.Success(it)
-                }
-            }
-
-
-
-            return@switchMap result
+        // todo: get user id
+        _bookmarks.addSource(database.getBookmarks(conference, "user-01")) {
+            _bookmarks.value = it
         }
 
-
-        speakers = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<Speaker>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.addSource(database.getSpeakers(it)) {
-                    result.value = Resource.Success(it)
-                }
-            }
-
-
-            return@switchMap result
+        _speakers.addSource(database.getSpeakers(conference)) {
+            _speakers.value = it
         }
 
-        articles = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<Article>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.addSource(database.getArticles(it)) {
-                    result.value = Resource.Success(it)
-                }
-            }
-
-
-            return@switchMap result
+        _articles.addSource(database.getArticles(conference)) {
+            _articles.value = it
         }
 
-        faq = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<FAQ>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.addSource(database.getFAQ(it)) {
-                    result.value = Resource.Success(it)
-                }
-            }
-
-            return@switchMap result
+        _faq.addSource(database.getFAQ(conference)) {
+            _faq.value = it
         }
 
-        vendors = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<Vendor>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.addSource(database.getVendors(it)) {
-                    result.value = Resource.Success(it)
-                }
-            }
-
-            return@switchMap result
+        _vendors.addSource(database.getVendors(conference)) {
+            _vendors.value = it
         }
 
-        maps = Transformations.switchMap(database.conference) {
-            val result = MediatorLiveData<Resource<List<FirebaseConferenceMap>>>()
-
-            if (it == null) {
-                result.value = Resource.Init
-            } else {
-                result.addSource(database.getMaps(it)) {
-                    result.value = Resource.Success(it)
-                }
-            }
-
-            return@switchMap result
+        _maps.addSource(database.getMaps(conference)) {
+            _maps.value = it
         }
 
-        search = Transformations.switchMap(query) { text ->
-            val results = MediatorLiveData<List<Any>>()
-
-            results.addSource(events) {
-                val locations = (locations.value as? Resource.Success)?.data?: emptyList()
-                val speakers = (speakers.value as? Resource.Success)?.data?: emptyList()
-                setValue(results, text, (it as? Resource.Success)?.data?: emptyList(), locations, speakers)
-            }
-
-            results.addSource(locations) {
-                val events = (events.value as? Resource.Success)?.data?: emptyList()
-                val speakers = (speakers.value as? Resource.Success)?.data?: emptyList()
-                setValue(results, text, events, (it as? Resource.Success)?.data?: emptyList(), speakers)
-            }
-
-            results.addSource(speakers) {
-                val events = (events.value as? Resource.Success)?.data?: emptyList()
-                val locations = (locations.value as? Resource.Success)?.data?: emptyList()
-                setValue(results, text, events, locations, (it as? Resource.Success)?.data?: emptyList())
-            }
-
-            return@switchMap results
+        _articles.addSource(database.getArticles(conference)) {
+            _articles.value = it
         }
 
-        home = Transformations.switchMap(database.conference) { id ->
-            val result = MediatorLiveData<Resource<List<Any>>>()
-
-            if (id == null) {
-                result.value = Resource.Init
-                return@switchMap result
-            }
-
-            result.value = Resource.Loading
-
-            result.addSource(bookmarks) {
-                val articles = (articles.value as? Resource.Success)?.data?.take(4) ?: emptyList()
-                result.value = Resource.Success(articles + ((it as? Resource.Success)?.data?.take(3) ?: emptyList()))
-            }
-
-            result.addSource(articles) {
-                val bookmarks = (bookmarks.value as? Resource.Success)?.data?.take(3) ?: emptyList()
-                result.value = Resource.Success(((it as? Resource.Success)?.data?.take(4) ?: emptyList()) + bookmarks)
-            }
-
-            return@switchMap result
+        // todo: pass the search query
+        _search.addSource(events) {
+            val locations = locations.value ?: emptyList()
+            val speakers = speakers.value ?: emptyList()
+            _search.value = getSearchResults(
+                "query",
+                it ?: emptyList(),
+                locations,
+                speakers
+            )
         }
 
+        _search.addSource(locations) {
+            val events = events.value ?: emptyList()
+            val speakers = speakers.value ?: emptyList()
+            _search.value = getSearchResults(
+                "query",
+                events,
+                it ?: emptyList(),
+                speakers
+            )
+        }
+
+        _search.addSource(speakers) {
+            val events = events.value ?: emptyList()
+            val locations = locations.value ?: emptyList()
+            _search.value = getSearchResults(
+                "query",
+                events,
+                locations,
+                it ?: emptyList()
+            )
+        }
+
+        _home.addSource(bookmarks) {
+            val articles = articles.value?.take(4) ?: emptyList()
+            _home.value = articles + (it?.take(3) ?: emptyList())
+        }
+
+        _home.addSource(articles) {
+            val bookmarks = bookmarks.value?.take(3) ?: emptyList()
+            _home.value = it.take(4) + bookmarks
+        }
     }
 
     private fun getSchedule(events: List<Event>, types: List<Type>): List<Event> {
@@ -287,16 +213,14 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
         return bookmark && filter.find { it.id == event.type.id }?.isSelected == true
     }
 
-    private fun setValue(
-        results: MediatorLiveData<List<Any>>,
+    private fun getSearchResults(
         query: String,
         events: List<Event>,
         locations: List<Location>,
         speakers: List<Speaker>
-    ) {
+    ): List<Any> {
         if (query.isBlank()) {
-            results.value = emptyList()
-            return
+            return emptyList()
         }
 
         val list = ArrayList<Any>()
@@ -326,7 +250,7 @@ class HackerTrackerViewModel : ViewModel(), KoinComponent {
             list.addAll(events)
         }
 
-        results.value = list
+        return list
     }
 
 

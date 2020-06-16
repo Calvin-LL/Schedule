@@ -72,7 +72,7 @@ class SpeakerFragment : Fragment() {
         val speaker = arguments?.getParcelable(EXTRA_SPEAKER) as? Speaker
 
         viewModel.speakers.observe(viewLifecycleOwner, Observer {
-            val target = (it as? Resource.Success)?.data?.find { it.id == speaker?.id }
+            val target = it?.find { it.id == speaker?.id }
             if(target != null) {
                 showSpeaker(target)
             }

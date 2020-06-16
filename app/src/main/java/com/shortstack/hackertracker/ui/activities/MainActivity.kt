@@ -67,11 +67,12 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener, Frag
         initNavDrawer()
 
         viewModel = ViewModelProvider(this)[HackerTrackerViewModel::class.java]
-        viewModel.conference.observe(this, Observer {
-            if (it != null) {
-                nav_view.getHeaderView(0).nav_title.text = (it as? Resource.Success)?.data?.name
-            }
-        })
+        // todo:
+//        viewModel.conference.observe(this, Observer {
+//            if (it != null) {
+//                nav_view.getHeaderView(0).nav_title.text = (it as? Resource.Success)?.data?.name
+//            }
+//        })
 
         if (savedInstanceState == null) {
             if (Amplify.getSharedInstance().shouldPrompt() && !BuildConfig.DEBUG) {

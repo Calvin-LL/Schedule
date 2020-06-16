@@ -19,9 +19,9 @@ class VendorsFragment : ListFragment<FirebaseVendor>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val viewModel = ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
+        val viewModel = ViewModelProvider(requireActivity())[HackerTrackerViewModel::class.java]
 
-        viewModel.vendors.observe(this, Observer {
+        viewModel.vendors.observe(viewLifecycleOwner, Observer {
             onResource(it)
         })
     }

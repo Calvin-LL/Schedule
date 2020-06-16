@@ -67,7 +67,7 @@ class EventFragment : Fragment() {
         val id = arguments?.getInt(EXTRA_EVENT)
 
         viewModel.events.observe(viewLifecycleOwner, Observer {
-            val target = (it as? Resource.Success)?.data?.find { it.id == id }
+            val target = it?.find { it.id == id }
             if (target != null) {
                 showEvent(target)
             }

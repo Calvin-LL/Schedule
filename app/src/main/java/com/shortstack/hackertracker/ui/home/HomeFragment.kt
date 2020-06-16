@@ -36,11 +36,11 @@ class HomeFragment : Fragment() {
             (context as MainActivity).openNavDrawer()
         }
 
-
-        val viewModel = ViewModelProvider(context as MainActivity)[HackerTrackerViewModel::class.java]
+        val viewModel = ViewModelProvider(requireActivity())[HackerTrackerViewModel::class.java]
         viewModel.home.observe(viewLifecycleOwner, Observer {
-            if ((it as? Resource.Success)?.data != null)
-                adapter.setElements(it.data)
+            if (it != null) {
+                adapter.setElements(it)
+            }
         })
 
         loading_progress.visibility = View.GONE
