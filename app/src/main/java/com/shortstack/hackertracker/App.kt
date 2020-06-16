@@ -9,10 +9,13 @@ import com.github.stkent.amplify.feedback.DefaultEmailFeedbackCollector
 import com.github.stkent.amplify.feedback.GooglePlayStoreFeedbackCollector
 import com.github.stkent.amplify.tracking.Amplify
 import com.orhanobut.logger.Logger
+import com.shortstack.hackertracker.database.ConferenceUser
 import com.shortstack.hackertracker.database.DatabaseManager
 import com.shortstack.hackertracker.di.appModule
 import com.shortstack.hackertracker.utilities.Storage
 import io.fabric.sdk.android.Fabric
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -28,6 +31,7 @@ class App : MultiDexApplication() {
 
     val storage: Storage by inject()
     val database: DatabaseManager by inject()
+    private val user: ConferenceUser by inject()
 
     override fun onCreate() {
         super.onCreate()
@@ -44,6 +48,12 @@ class App : MultiDexApplication() {
         initLogger()
         initFeedback()
 
+
+        // todo: use a better scope
+        GlobalScope.launch {
+            user.init()
+            database.init()
+        }
     }
 
     private fun initFeedback() {

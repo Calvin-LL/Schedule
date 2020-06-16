@@ -1,14 +1,11 @@
 package com.shortstack.hackertracker.database
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.google.android.gms.tasks.OnCompleteListener
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.Query
@@ -20,8 +17,6 @@ import com.shortstack.hackertracker.BuildConfig
 import com.shortstack.hackertracker.models.firebase.*
 import com.shortstack.hackertracker.models.local.*
 import com.shortstack.hackertracker.network.task.ReminderWorker
-import com.shortstack.hackertracker.toConference
-import com.shortstack.hackertracker.toEvent
 import com.shortstack.hackertracker.utilities.MyClock
 import com.shortstack.hackertracker.utilities.Storage
 import com.shortstack.hackertracker.utilities.now
@@ -45,23 +40,6 @@ class DatabaseManager(private val preferences: Storage) {
         private const val SPEAKERS = "speakers"
         private const val LOCATIONS = "locations"
         private const val ARTICLES = "articles"
-
-        fun getNextConference(preferred: Int, conferences: List<Conference>): Conference? {
-            if (preferred != -1) {
-                val pref = conferences.find { it.id == preferred && !it.hasFinished }
-                if (pref != null) return pref
-            }
-
-            val list = conferences.sortedBy { it.startDate }
-
-            val defcon = list.find { it.code == "DEFCON27" }
-            if (defcon?.hasFinished == false) {
-                return defcon
-            }
-
-            return list.firstOrNull { !it.hasFinished }
-                ?: conferences.lastOrNull()
-        }
     }
 
     private val code
@@ -69,49 +47,33 @@ class DatabaseManager(private val preferences: Storage) {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
-    private val auth = FirebaseAuth.getInstance()
 
 
     val conference = MutableLiveData<Conference>()
     val conferences = MutableLiveData<List<Conference>>()
 
-    private var user: FirebaseUser? = null
-
     init {
-        if (!BuildConfig.DEBUG) {
-            val settings = FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build()
+        firestore.firestoreSettings = FirebaseFirestoreSettings.Builder()
+            .setPersistenceEnabled(!BuildConfig.DEBUG)
+            .build()
+    }
 
-            firestore.firestoreSettings = settings
-        }
+    suspend fun init() {
+        val snapshot = firestore.collection(CONFERENCES)
+            .get()
+            .await()
 
-        auth.signInAnonymously().addOnCompleteListener {
-            if (it.isSuccessful) {
-                user = it.result?.user ?: return@addOnCompleteListener
-            }
+        val list = snapshot.toObjects(FirebaseConference::class.java)
+            .filter { !it.hidden || App.isDeveloper }
+            .map { it.toLocal() }
+            .sortedBy { it.startDate }
 
-            firestore.collection(CONFERENCES)
-                .get()
-                .addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        val list = it.result?.toObjects(FirebaseConference::class.java)
-                            ?.filter { !it.hidden || App.isDeveloper }
-                            ?.map { it.toConference() }
-                            ?.sortedBy { it.startDate }
+        val con = NextConferenceFinder.getNext(list, preferences.preferredConference)
+        conference.postValue(con)
+        conferences.postValue(list)
 
-                            ?: emptyList()
-
-
-                        val con = getNextConference(preferences.preferredConference, list)
-                        conference.postValue(con)
-                        conferences.postValue(list)
-
-                        if (con != null)
-                            getFCMToken(con)
-                    }
-                }
-        }
+        if (con != null)
+            getFCMToken(con)
     }
 
 
@@ -146,7 +108,7 @@ class DatabaseManager(private val preferences: Storage) {
                 if (it.isSuccessful) {
                     val selected =
                         it.result?.toObjects(FirebaseConference::class.java)?.firstOrNull()
-                            ?.toConference()
+                            ?.toLocal()
                     conference.postValue(selected)
                 }
             }
@@ -160,7 +122,7 @@ class DatabaseManager(private val preferences: Storage) {
                 if (exception == null) {
                     val cons = snapshot?.toObjects(FirebaseConference::class.java)
                         ?.filter { !it.hidden || App.isDeveloper }
-                        ?.map { it.toConference() }
+                        ?.map { it.toLocal() }
 
                     mutableLiveData.postValue(cons)
                 }
@@ -193,7 +155,7 @@ class DatabaseManager(private val preferences: Storage) {
             .addOnSuccessListener {
                 val events = it.toObjects(FirebaseEvent::class.java)
                     .filter { !it.hidden || App.isDeveloper }
-                    .map { it.toEvent() }
+                    .map { it.toLocal() }
 
                 mutableLiveData.postValue(events)
             }
@@ -225,7 +187,7 @@ class DatabaseManager(private val preferences: Storage) {
             .get()
             .await()
 
-        return snapshot.toObject(FirebaseEvent::class.java)?.toEvent()
+        return snapshot.toObject(FirebaseEvent::class.java)?.toLocal()
     }
 
     fun updateBookmark(event: Event) {
@@ -252,65 +214,14 @@ class DatabaseManager(private val preferences: Storage) {
         } else {
             WorkManager.getInstance().cancelAllWorkByTag(tag)
         }
-
-        val id = user?.uid ?: return
-
-        val document = firestore.collection(CONFERENCES)
-            .document(event.conference)
-            .collection(USERS)
-            .document(id)
-            .collection(BOOKMARKS)
-            .document(event.id.toString())
-
-        if (event.isBookmarked) {
-            document.set(
-                mapOf(
-                    "id" to event.id.toString(),
-                    "value" to true
-                )
-            )
-        } else {
-            document.delete()
-        }
     }
 
     fun updateTypeIsSelected(type: Type) {
-        val id = user?.uid ?: return
 
-        val document = firestore.collection(CONFERENCES)
-            .document(type.conference)
-            .collection(USERS)
-            .document(id)
-            .collection(TYPES)
-            .document(type.id.toString())
-
-        if (type.isSelected) {
-            document.set(
-                mapOf(
-                    "id" to type.id.toString(),
-                    "value" to true
-                )
-            )
-        } else {
-            document.delete()
-        }
     }
 
     private fun updateFirebaseMessagingToken(conference: Conference?, token: String?) {
-        val id = user?.uid
 
-        if (conference == null || token == null || id == null) {
-            Log.e("TAG", "Null, cannot update token.")
-            return
-        }
-
-        val document = firestore.collection(CONFERENCES)
-            .document(conference.code)
-            .collection(USERS)
-            .document(id)
-
-
-        document.set(mapOf("token" to token))
     }
 
     fun clear() {
@@ -333,7 +244,7 @@ class DatabaseManager(private val preferences: Storage) {
                     val events = snapshot?.toObjects(FirebaseEvent::class.java)
                     val filtered =
                         events?.filter { it.speakers.firstOrNull { it.id == speaker.id } != null }
-                            ?.map { it.toEvent() }
+                            ?.map { it.toLocal() }
                     mutableLiveData.postValue(filtered)
                 }
             }
@@ -380,6 +291,4 @@ class DatabaseManager(private val preferences: Storage) {
         }
         return mutableLiveData
     }
-
-
 }

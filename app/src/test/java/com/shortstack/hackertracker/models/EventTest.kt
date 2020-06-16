@@ -15,11 +15,11 @@ class EventTest {
     init {
         val firebase = FirebaseEvent(title = "Test Event", begin = "2019-01-01T12:00:00.000-0000", end = "2019-01-01T13:00:00.000-0000")
         firebase.speakers.add(FirebaseSpeaker(10, "John", "Tester"))
-        event = firebase.toEvent()
+        event = firebase.toLocal()
     }
 
     @Test
-    fun toEvent() {
+    fun toLocal() {
         assertEquals("Test Event", event.title)
         assertEquals(1, event.speakers.size)
         assertEquals("John", event.speakers.first().name)

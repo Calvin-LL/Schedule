@@ -5,37 +5,53 @@ import com.shortstack.hackertracker.models.firebase.FirebaseConference
 import com.shortstack.hackertracker.models.local.Conference
 import com.shortstack.hackertracker.setCurrentClock
 import com.shortstack.hackertracker.toConference
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DatabaseManagerTest {
 
     private val conferences: List<Conference> = listOf(
-            FirebaseConference(id = 1, code = "abc", start_timestamp = fromString("2019-01-01"), end_timestamp = fromString("2019-01-01")),
-            FirebaseConference(id = 2, code = "123", start_timestamp = fromString("2019-03-02"), end_timestamp = fromString("2019-03-03")),
-            FirebaseConference(id = 3, code = "456", start_timestamp = fromString("2019-05-02"), end_timestamp = fromString("2019-05-03"))
-    ).map { it.toConference() }
+        FirebaseConference(
+            id = 1,
+            code = "abc",
+            start_timestamp = fromString("2019-01-01"),
+            end_timestamp = fromString("2019-01-01")
+        ),
+        FirebaseConference(
+            id = 2,
+            code = "123",
+            start_timestamp = fromString("2019-03-02"),
+            end_timestamp = fromString("2019-03-03")
+        ),
+        FirebaseConference(
+            id = 3,
+            code = "456",
+            start_timestamp = fromString("2019-05-02"),
+            end_timestamp = fromString("2019-05-03")
+        )
+    ).map { it.toLocal() }
 
     @Test
-    fun `get newest conference` (){
+    fun `get newest conference`() {
         setCurrentClock("2019-01-02T11:00:00.000-0000")
 
-        val result = DatabaseManager.getNextConference(-1, conferences)
+
+        val result = NextConferenceFinder.getNext(conferences)
 
         assertEquals("123", result?.code)
     }
 
     @Test
-    fun `get preferred conference` (){
+    fun `get preferred conference`() {
         setCurrentClock("2019-01-01T11:00:00.000-0000")
 
-        val result = DatabaseManager.getNextConference(2, conferences)
+        val result = NextConferenceFinder.getNext(conferences, 2)
 
         assertEquals("123", result?.code)
     }
 
     @Test
-    fun `get defcon conference` (){
+    fun `get defcon conference`() {
         setCurrentClock("2019-01-01T11:00:00.000-0000")
 
         val defcon = FirebaseConference(
@@ -43,17 +59,17 @@ class DatabaseManagerTest {
             code = "DEFCON27",
             start_timestamp = fromString("2019-05-02"),
             end_timestamp = fromString("2019-05-03")
-        ).toConference()
+        ).toLocal()
 
         val conferences = conferences + defcon
 
-        val result = DatabaseManager.getNextConference(-1, conferences)
+        val result = NextConferenceFinder.getNext(conferences)
 
         assertEquals("DEFCON27", result?.code)
     }
 
     @Test
-    fun `skip defcon conference when finished` (){
+    fun `skip defcon conference when finished`() {
         setCurrentClock("2019-03-03T11:00:00.000-0000")
 
         val defcon = FirebaseConference(
@@ -61,30 +77,30 @@ class DatabaseManagerTest {
             code = "DEFCON27",
             start_timestamp = fromString("2019-02-02"),
             end_timestamp = fromString("2019-02-03")
-        ).toConference()
+        ).toLocal()
 
         val conferences = conferences + defcon
 
-        val result = DatabaseManager.getNextConference(-1, conferences)
+        val result = NextConferenceFinder.getNext(conferences)
 
         assertEquals("456", result?.code)
     }
 
 
     @Test
-    fun `get newest conference when all finished` (){
+    fun `get newest conference when all finished`() {
         setCurrentClock("2019-06-01T11:00:00.000-0000")
 
-        val result = DatabaseManager.getNextConference(-1, conferences)
+        val result = NextConferenceFinder.getNext(conferences)
 
         assertEquals("456", result?.code)
     }
 
     @Test
-    fun `get newest conference when all finished with preference` (){
+    fun `get newest conference when all finished with preference`() {
         setCurrentClock("2019-06-01T11:00:00.000-0000")
 
-        val result = DatabaseManager.getNextConference(1, conferences)
+        val result = NextConferenceFinder.getNext(conferences)
 
         assertEquals("456", result?.code)
     }

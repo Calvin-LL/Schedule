@@ -79,29 +79,3 @@ fun AppCompatActivity.replaceFragment(fragment: Fragment, frameId: Int, hasAnima
         return@inTransaction transaction
     }
 }
-
-fun FirebaseConference.toConference() = Conference(
-        id,
-        name,
-        description,
-        codeofconduct,
-        code,
-        maps,
-        start_timestamp.toDate(),
-        end_timestamp.toDate(),
-        timezone
-)
-
-fun FirebaseEvent.toEvent() = Event(
-        id,
-        conference,
-        title,
-        description,
-        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(begin),
-        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(end),
-        link,
-        updated,
-        speakers.map { it.toLocal() },
-        type.toLocal(),
-        location.toLocal()
-)
