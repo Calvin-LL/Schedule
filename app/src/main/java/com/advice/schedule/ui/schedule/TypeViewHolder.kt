@@ -1,4 +1,4 @@
-package com.advice.schedule.views
+package com.advice.schedule.ui.schedule
 
 import android.graphics.Color
 import android.util.TypedValue

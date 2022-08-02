@@ -8,8 +8,10 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.advice.schedule.PreferenceViewModel
 import com.advice.schedule.Response
+import com.advice.schedule.dObj
 import com.advice.schedule.models.firebase.FirebaseTag
 import com.advice.schedule.models.firebase.FirebaseTagType
+import com.advice.schedule.models.local.Location
 import com.advice.schedule.ui.HackerTrackerViewModel
 import com.advice.schedule.ui.activities.MainActivity
 import com.advice.schedule.views.FilterAdapter
@@ -63,18 +65,40 @@ class FilterFragment : Fragment() {
             }
         }
 
+        viewModel.events.observe(viewLifecycleOwner) {
+            val list = it.data ?: emptyList()
+            // only getting the used locations
+            val locations = list.map { it.location }.distinctBy { it.id }
+            setLocations(locations)
+        }
+
         preferenceViewModel.getFilterTutorial().observe(viewLifecycleOwner) { shouldShowTutorial ->
             binding.hint.isVisible = shouldShowTutorial
         }
     }
 
     private fun setTypes(types: List<FirebaseTagType>) {
+        merge(types, viewModel.events.value?.data?.map { it.location }?.distinctBy { it.id })
+    }
+
+
+    private fun setLocations(locations: List<Location>) {
+        merge(viewModel.tags.value?.dObj as? List<FirebaseTagType>, locations)
+    }
+
+    private fun merge(types: List<FirebaseTagType>?, locations: List<Location>?) {
         val collection = ArrayList<Any>()
 
         collection.add(FirebaseTag.bookmark)
-        types.filter { it.category == "content" && it.is_browsable }.forEach {
+
+        types?.filter { it.category == "content" && it.is_browsable }?.forEach {
             collection.add(it.label)
             collection.addAll(it.tags)
+        }
+
+        if (locations != null) {
+            collection.add("Locations")
+            collection.addAll(locations)
         }
 
         adapter.setElements(collection)

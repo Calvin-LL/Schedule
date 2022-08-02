@@ -19,4 +19,5 @@ data class Location(
     val parent_id: Int = -1,
     val peer_sort_order: Int = -1,
     val schedule: List<LocationSchedule>? = null,
+    var isSelected: Boolean = false
 ) : Parcelable

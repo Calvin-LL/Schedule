@@ -3,9 +3,10 @@ package com.advice.schedule.views
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.advice.schedule.models.firebase.FirebaseTag
-import com.advice.schedule.models.local.Type
+import com.advice.schedule.models.local.Location
+import com.advice.schedule.ui.schedule.LocationViewHolder
+import com.advice.schedule.ui.schedule.TypeViewHolder
 import com.advice.schedule.ui.search.HeaderViewHolder
-import kotlin.math.min
 
 // todo: replace with ListAdapter
 class FilterAdapter(
@@ -18,15 +19,18 @@ class FilterAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             TYPE_HEADER -> HeaderViewHolder.inflate(parent)
-            else -> TypeViewHolder.inflate(parent)
+            TYPE_TAG -> TypeViewHolder.inflate(parent)
+            TYPE_LOCATION -> LocationViewHolder.inflate(parent)
+            else -> error("unknown viewType: $viewType")
         }
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (collection[position] is String) {
-            TYPE_HEADER
-        } else {
-            TYPE_ITEM
+        return when (collection[position]) {
+            is String -> TYPE_HEADER
+            is FirebaseTag -> TYPE_TAG
+            is Location -> TYPE_LOCATION
+            else -> error("unknown type: ${collection[position].javaClass}")
         }
     }
 
@@ -40,6 +44,7 @@ class FilterAdapter(
                 onClickListener,
                 onLongClickListener
             )
+            is LocationViewHolder -> holder.render(collection[position] as Location)
         }
     }
 
@@ -49,15 +54,9 @@ class FilterAdapter(
         notifyDataSetChanged()
     }
 
-    fun getSpanCount(position: Int, spanCount: Int): Int {
-        val element = collection[position] as Type
-        val min = min(element.shortName.length / 10, spanCount)
-        return spanCount
-        //return min
-    }
-
     companion object {
         const val TYPE_HEADER = 0
-        const val TYPE_ITEM = 1
+        const val TYPE_TAG = 1
+        const val TYPE_LOCATION = 2
     }
 }
