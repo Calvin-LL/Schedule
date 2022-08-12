@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Parcelable
 import com.advice.schedule.utilities.Time
 import kotlinx.android.parcel.Parcelize
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
 
