@@ -73,8 +73,9 @@ class LocationsBottomSheet : BottomSheetDialogFragment() {
 
     private fun parse(date: String): Date? {
         return try {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(date)
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(date)
         } catch (ex: Exception) {
+            Timber.e(ex, "Could not parse date: $date")
             null
         }
     }

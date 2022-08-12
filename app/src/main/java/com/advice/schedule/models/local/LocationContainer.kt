@@ -40,10 +40,11 @@ data class LocationContainer(
 
     private fun parse(date: String): Date? {
         return try {
-            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+00:00")
+            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
             simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
             simpleDateFormat.parse(date)
         } catch (ex: Exception) {
+            Timber.e(ex, "Could not parse date: $date")
             null
         }
     }

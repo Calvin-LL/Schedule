@@ -14,6 +14,7 @@ import com.advice.schedule.toPx
 import com.advice.schedule.utilities.Time
 import com.shortstack.hackertracker.R
 import com.shortstack.hackertracker.databinding.LocationViewBinding
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -103,8 +104,9 @@ class LocationView(context: Context, attrs: AttributeSet?) : ConstraintLayout(co
 
     private fun parse(date: String): Date? {
         return try {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(date)
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(date)
         } catch (ex: Exception) {
+            Timber.e(ex, "Could not parse date: $date")
             null
         }
     }
