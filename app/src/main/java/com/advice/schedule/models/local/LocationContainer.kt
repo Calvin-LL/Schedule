@@ -40,7 +40,9 @@ data class LocationContainer(
 
     private fun parse(date: String): Date? {
         return try {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(date)
+            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+00:00")
+            simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
+            simpleDateFormat.parse(date)
         } catch (ex: Exception) {
             null
         }
