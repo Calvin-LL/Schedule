@@ -591,7 +591,7 @@ class DatabaseManager(
         return mutableLiveData
     }
 
-    suspend fun getUser(): com.advice.schedule.models.firebase.FirebaseUser? {
+    suspend fun getUser(): com.advice.schedule.models.firebase.FirebaseUserProfile? {
         val id = user?.uid ?: return null
 
         try {
@@ -600,7 +600,7 @@ class DatabaseManager(
                 .get()
                 .await()
 
-            val user = snapshot.toObjectOrNull(com.advice.schedule.models.firebase.FirebaseUser::class.java)
+            val user = snapshot.toObjectOrNull(com.advice.schedule.models.firebase.FirebaseUserProfile::class.java)
             preferences.user = user
             return user
         } catch (ex: Exception) {

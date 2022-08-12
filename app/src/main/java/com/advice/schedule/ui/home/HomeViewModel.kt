@@ -2,7 +2,7 @@ package com.advice.schedule.ui.home
 
 import androidx.lifecycle.*
 import com.advice.schedule.database.DatabaseManager
-import com.advice.schedule.models.firebase.FirebaseUser
+import com.advice.schedule.models.firebase.FirebaseUserProfile
 import com.advice.schedule.models.local.Article
 import com.advice.schedule.models.local.Conference
 import com.advice.schedule.utilities.Analytics
@@ -20,7 +20,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
     private val conference: LiveData<Conference> = database.conference
     private val conferences: LiveData<List<Conference>> = database.conferences
     private val articles: LiveData<List<Article>>
-    private var user = MutableLiveData<FirebaseUser?>()
+    private var user = MutableLiveData<FirebaseUserProfile?>()
     private val state: LiveData<HomeState>
 
     init {
@@ -81,6 +81,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 sealed class HomeState {
     object Loading : HomeState()
-    data class Loaded(val user: FirebaseUser?, val conferences: List<Conference>, val conference: Conference, val article: List<Article>) : HomeState()
+    data class Loaded(val user: FirebaseUserProfile?, val conferences: List<Conference>, val conference: Conference, val article: List<Article>) : HomeState()
     data class Error(val ex: Exception) : HomeState()
 }

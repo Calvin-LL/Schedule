@@ -3,8 +3,7 @@ package com.advice.schedule.utilities
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
-import com.advice.schedule.models.firebase.FirebaseUser
-import com.advice.schedule.ui.HackerTrackerViewModel
+import com.advice.schedule.models.firebase.FirebaseUserProfile
 import com.advice.schedule.ui.themes.ThemesManager
 import com.google.gson.Gson
 import java.util.*
@@ -88,8 +87,8 @@ class Storage(context: Context, private val gson: Gson) {
             preferences.edit().putString(USER_THEME, gson.toJson(value)).apply()
         }
 
-    var user: FirebaseUser?
-        get() = gson.fromJson(preferences.getString(USER_PROFILE, ""), FirebaseUser::class.java)
+    var user: FirebaseUserProfile?
+        get() = gson.fromJson(preferences.getString(USER_PROFILE, ""), FirebaseUserProfile::class.java)
         set(value) {
             preferences.edit().putString(USER_PROFILE, gson.toJson(value)).apply()
         }
